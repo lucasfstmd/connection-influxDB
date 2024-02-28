@@ -1,5 +1,15 @@
+import { IConnectionDB } from './connection.db.interface'
+
 export interface IConnectionFactory {
-    createConnection(uri: string, options?: IDBOptions | IEventBusOptions): Promise<any>
+    createConnection(uri: string | IConnectionDB, options?: IDBOptions | IEventBusOptions): Promise<any>
+}
+
+export interface IConnectionFactoryDB {
+    createConnection(): Promise<any>
+
+
+    writeApi(org: string, bucket: string): Promise<void>
+
 }
 
 export interface IDBOptions {

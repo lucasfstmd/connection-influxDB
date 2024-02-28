@@ -4,18 +4,15 @@ import helmet from 'helmet'
 import bodyParser from 'body-parser'
 import HttpStatus from 'http-status-codes'
 import swaggerUi from 'swagger-ui-express'
-import qs from 'query-strings-parser'
-import cors from 'cors'
 import express, { Application, NextFunction, Request, Response } from 'express'
 import { inject, injectable } from 'inversify'
 import { InversifyExpressServer } from 'inversify-express-utils'
 import { ApiException } from './ui/exception/api.exception'
 import { Default } from './utils/default'
+import { DIContainer } from './di/di'
 import { Identifier } from './di/identifiers'
 import { ILogger } from './utils/custom.logger'
 import { Strings } from './utils/strings'
-import { DIContainer } from './di/di'
-import yaml from 'yamljs'
 
 /**
  * Implementation of class App.
@@ -36,8 +33,6 @@ export class App {
 
     /**
      * Get express instance.
-     *
-     * @return {Application}
      */
     public getExpress(): Application {
         return this.express
@@ -45,9 +40,6 @@ export class App {
 
     /**
      * Initialize app settings.
-     *
-     * @private
-     * @return void
      */
     private bootstrap(): void {
         this.initMiddleware()
@@ -55,9 +47,6 @@ export class App {
 
     /**
      * Initialize middleware.
-     *
-     * @private
-     * @return void
      */
     private initMiddleware(): void {
         this.setupInversifyExpress()
@@ -67,48 +56,28 @@ export class App {
 
     /**
      * Setup Inversify.
-     * Responsible for injecting routes defined through annotations in controllers.
+     * Responsible for injecting routes defined through annotations in routes.
      * Other middleware are also injected, such as query-strings-parser, helmet, body-parser, morgan...
-     *
-     * @private
-     * @return void
      */
     private setupInversifyExpress(): void {
         const inversifyExpress: InversifyExpressServer = new InversifyExpressServer(
             DIContainer, null, { rootPath: '/' })
 
         inversifyExpress.setConfig((app: Application) => {
-            // for handling query strings
-            // {@link https://www.npmjs.com/package/query-strings-parser}
-            app.use(qs({
-                use_page: true,
-                default: {
-                    pagination: { page: 1, limit: 100 }
-                }
-            }))
-            app.use(
-                cors({
-                    origin: '*',
-                    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-                    allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'Accept'],
-                    exposedHeaders: ['Content-Type', 'x-ratelimit-limit', 'x-ratelimit-remaining', 'X-Total-Count', 'Zip-Name']
-                })
-            )
-
             // helps you secure your Express apps by setting various HTTP headers.
             // {@link https://www.npmjs.com/package/helmet}
             app.use(helmet())
 
             // create application/json parser
             // {@link https://www.npmjs.com/package/body-parser}
-            app.use(bodyParser.json())
+            app.use(bodyParser.json({ limit: '15mb', type: 'application/json' }))
             // create application/x-www-form-urlencoded parser
             app.use(bodyParser.urlencoded({ extended: false }))
 
             app.use(morgan(':remote-addr :remote-user ":method :url HTTP/:http-version" ' +
                 ':status :res[content-length] :response-time ms ":referrer" ":user-agent"', {
-                stream: { write: (str: string) => this._logger.info(str) }
-            }
+                    stream: { write: (str: string) => this._logger.info(str) }
+                }
             ))
         })
         this.express.use(inversifyExpress.build())
@@ -122,15 +91,12 @@ export class App {
      */
     private setupSwaggerUI(): void {
         const options = {
+            swaggerUrl: Default.SWAGGER_URI,
             customCss: '.swagger-ui .topbar { display: none }',
             customfavIcon: Default.LOGO_URI,
             customSiteTitle: `API Reference | ${Strings.APP.TITLE}`
         }
-        this.express.use(
-            '/v1/reference',
-            swaggerUi.serve,
-            swaggerUi.setup(yaml.load(Default.SWAGGER_PATH), options)
-        )
+        this.express.use('/v1/reference', swaggerUi.serve, swaggerUi.setup({}, options))
     }
 
     /**

@@ -1,18 +1,17 @@
 import { inject, injectable } from 'inversify'
 import { Identifier } from '../di/identifiers'
-import { IConnectionDB } from '../infrastructure/port/connection.db.interface'
-import { Default } from '../utils/default'
 import { IBackgroundTask } from '../application/port/background.task.interface'
 import { Config } from '../utils/config'
 import { ILogger } from '../utils/custom.logger'
 import { IEventBus } from '../infrastructure/port/event.bus.interface'
+import { IConnectionDB } from '../infrastructure/port/connection.db.interface'
 
 @injectable()
 export class BackgroundService {
 
     constructor(
-        @inject(Identifier.MONGODB_CONNECTION) private readonly _mongodb: IConnectionDB,
         @inject(Identifier.RABBITMQ_EVENT_BUS) private readonly _eventBus: IEventBus,
+        @inject(Identifier.INFLUXDB_CONNECTION) private readonly _influxdb: IConnectionDB,
         @inject(Identifier.LOGGER) private readonly _logger: ILogger,
         @inject(Identifier.PUBLISH_EVENT_BUS_TASK) private readonly _publishTask: IBackgroundTask,
         @inject(Identifier.SUBSCRIBE_EVENT_BUS_TASK) private readonly _subscribeTask: IBackgroundTask,
@@ -28,13 +27,13 @@ export class BackgroundService {
              * database is connected, and in this case, the background tasks will run
              */
             await this._registerSettingsTask.run()
+            await this._influxdb.tryConnect()
 
             /**
              * Trying to connect to mongodb.
              * Go ahead only when the run is resolved.
              * Since the application depends on the database connection to work.
              */
-            await this._mongodb.tryConnect(BackgroundService.getDBUri())
 
             this._startTasks()
         } catch (err: any) {
@@ -44,9 +43,10 @@ export class BackgroundService {
 
     public async stopServices(): Promise<void> {
         try {
-            await this._mongodb.dispose()
+            await this._influxdb.dispose()
+            await this._eventBus.dispose()
         } catch (err: any) {
-            return Promise.reject(new Error(`Error stopping services in background! ${err?.message}`))
+            return Promise.reject(new Error(`Error stopping background services! ${err.message}`))
         }
     }
 
@@ -114,18 +114,5 @@ export class BackgroundService {
                 this._logger.error(`Error trying to get connection to Event Bus for RPC Client. ${err.message}`)
             })
 
-    }
-
-
-    /**
-     * Retrieve the URI for connection to MongoDB.
-     *
-     * @return {string}
-     */
-    private static getDBUri(): string {
-        if (process.env.NODE_ENV && process.env.NODE_ENV === 'test') {
-            return process.env.MONGODB_URI_TEST || Default.MONGODB_URI_TEST
-        }
-        return process.env.MONGODB_URI || Default.MONGODB_URI
     }
 }

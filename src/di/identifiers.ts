@@ -7,16 +7,14 @@ export abstract class Identifier {
     // Services
 
     // Repositories
-    public static readonly INTEGRATION_EVENT_REPOSITORY: any = Symbol.for('IntegrationEventRepository')
+    public static readonly INFLUXDB_CONNECTION_FACTORY: any = Symbol.for('ConnectionFactoryInfluxDB')
+    public static readonly INFLUXDB_CONNECTION: any = Symbol.for('ConnectionInfluxDB')
 
     // Models
-    public static readonly INTEGRATION_EVENT_REPO_MODEL: any = Symbol.for('IntegrationEventRepoModel')
 
     // Mappers
 
     // Background Services
-    public static readonly MONGODB_CONNECTION_FACTORY: any = Symbol.for('ConnectionFactoryMongodb')
-    public static readonly MONGODB_CONNECTION: any = Symbol.for('ConnectionMongodb')
     public static readonly BACKGROUND_SERVICE: any = Symbol.for('BackgroundService')
     public static readonly RABBITMQ_EVENT_BUS: any = Symbol.for('EventBusRabbitMQ')
     public static readonly RABBITMQ_CONNECTION_FACTORY: any = Symbol.for('RabbitMQConnectionFactory')

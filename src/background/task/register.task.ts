@@ -8,7 +8,7 @@ import { IConnectionDB } from '../../infrastructure/port/connection.db.interface
 export class RegisterTask implements IBackgroundTask {
 
     constructor(
-        @inject(Identifier.MONGODB_CONNECTION) private readonly _mongodb: IConnectionDB    ) {
+        @inject(Identifier.INFLUXDB_CONNECTION) private readonly _mongodb: IConnectionDB    ) {
     }
 
     public async run(): Promise<void> {

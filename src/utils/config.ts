@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { Default } from './default'
-import { IDBOptions, IEventBusOptions, ISSL } from '../infrastructure/port/connection.factory.interface'
+import { IEventBusOptions, ISSL } from '../infrastructure/port/connection.factory.interface'
 
 export abstract class Config {
 
@@ -16,7 +16,7 @@ export abstract class Config {
      *     }
      * }
      */
-    public static getMongoConfig(): IMongoConfig {
+    /*public static getMongoConfig(): IMongoConfig {
         return {
             uri: (process.env.NODE_ENV === 'test') ? (process.env.MONGODB_URI_TEST ||
                 Default.MONGODB_URI_TEST) : (process.env.MONGODB_URI || Default.MONGODB_URI),
@@ -26,7 +26,7 @@ export abstract class Config {
                 tlsCertificateKeyFile: process.env.MONGODB_KEY_PATH
             } as IDBOptions : undefined
         } as IMongoConfig
-    }
+    }*/
 
     /**
      * Retrieve the URI and options for connection to RabbitMQ.
@@ -45,7 +45,7 @@ export abstract class Config {
      * }
      */
     public static getRabbitConfig(): IRabbitConfig {
-        const uri = process.env.RABBITMQ_AMQP_URI || Default.RABBITMQ_AMQP_URI
+        const uri = process.env.RABBITMQ_URI || Default.RABBITMQ_URI
         return {
             uri,
             options: {
@@ -61,10 +61,10 @@ export abstract class Config {
     }
 }
 
-export interface IMongoConfig {
+/*export interface IMongoConfig {
     uri: string
     options: IDBOptions
-}
+}*/
 
 export interface IRabbitConfig {
     uri: string

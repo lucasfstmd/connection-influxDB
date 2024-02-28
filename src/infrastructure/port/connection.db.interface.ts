@@ -1,9 +1,11 @@
 import { IDisposable } from './disposable.interface'
 import { EventEmitter } from 'events'
-import { IDBOptions } from './connection.factory.interface'
+import { InfluxDB } from '@influxdata/influxdb-client'
 
 export interface IConnectionDB extends IDisposable {
+    connection: InfluxDB | undefined
+
     eventConnection: EventEmitter
 
-    tryConnect(uri: string, options?: IDBOptions): Promise<void>
+    tryConnect(): Promise<void>
 }
