@@ -25,7 +25,7 @@ export abstract class Default {
     public static readonly INFLUXDB_TOKEN: string = 'my-token'
     public static readonly INFLUXDB_ORG: string = 'my-org'
     public static readonly INFLUXDB_BUCKET: string = 'my-bucket'
-    public static readonly MEASUREMENT_HR_ZONES_NAME: string = 'heart_rate_zones'
+    public static readonly MEASUREMENT_HR_NAME: string = 'heart_rate_zones'
     public static readonly MEASUREMENT_TIMESERIES_NAME: string = 'intraday_timeseries'
 
     // RabbitMQ

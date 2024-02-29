@@ -18,6 +18,15 @@ import { SubscribeEventBusTask } from '../background/task/subscribe.event.bus.ta
 import { ConnectionFactoryInfluxDB } from '../infrastructure/database/connection.factory.influxdb'
 import { ConnectionInfluxDB } from '../infrastructure/database/connection.influxdb'
 import { IConnectionDB } from '../infrastructure/port/connection.db.interface'
+import { IEntityMapper } from '../infrastructure/entity/mapper/entity.mapper.interface'
+import { HeartHate } from '../application/domain/model/heart.hate'
+import { HeartHateEntity } from '../infrastructure/entity/heart.hate.entity'
+import { HeartHateMapper } from '../infrastructure/entity/mapper/heart.hate.mapper'
+import { IHeartHateRepository } from '../application/port/heart.hate.repository.interface'
+import { HeartHateRepository } from '../infrastructure/repository/heart.hate.repository'
+import { IHeartHateService } from '../application/port/heart.hate.service.interface'
+import { HeartHateService } from '../application/service/heart.hate.service'
+import { HeartHateController } from '../ui/controllers/heart.hate.controller'
 
 class IoC {
     private readonly _container: Container
@@ -46,11 +55,20 @@ class IoC {
 
         // Controllers
         this._container.bind<HomeController>(Identifier.HOME_CONTROLLER).to(HomeController).inSingletonScope()
+        this._container.bind<HeartHateController>(Identifier.HEART_HATE_CONTROLLER).to(HeartHateController).inSingletonScope()
 
-        // Models
+        // Mappers
+        this._container
+            .bind<IEntityMapper<HeartHate, HeartHateEntity>>(Identifier.HEART_HATE_MAPPER)
+            .to(HeartHateMapper).inSingletonScope()
 
+        // Services
+        this._container.bind<IHeartHateService>(Identifier.HEART_HATE_SERVICE)
+            .to(HeartHateService).inSingletonScope()
 
         // Repositors
+        this._container.bind<IHeartHateRepository>(Identifier.HEART_HATE_REPOSITORY)
+            .to(HeartHateRepository).inSingletonScope()
 
         // Background Services
         this._container

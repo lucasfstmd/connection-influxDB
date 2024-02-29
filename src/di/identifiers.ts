@@ -3,16 +3,18 @@ export abstract class Identifier {
 
     // Controllers
     public static readonly HOME_CONTROLLER: any = Symbol.for('HomeController')
+    public static readonly HEART_HATE_CONTROLLER: any = Symbol.for('HeartHateController')
 
     // Services
+    public static readonly HEART_HATE_SERVICE: any = Symbol.for('HeartHateService')
 
     // Repositories
     public static readonly INFLUXDB_CONNECTION_FACTORY: any = Symbol.for('ConnectionFactoryInfluxDB')
     public static readonly INFLUXDB_CONNECTION: any = Symbol.for('ConnectionInfluxDB')
-
-    // Models
+    public static readonly HEART_HATE_REPOSITORY: any = Symbol.for('HeartHateRepository')
 
     // Mappers
+    public static readonly HEART_HATE_MAPPER: any = Symbol.for('HeartHateMapper')
 
     // Background Services
     public static readonly BACKGROUND_SERVICE: any = Symbol.for('BackgroundService')
