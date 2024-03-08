@@ -20,7 +20,6 @@ export class HeartHateController {
             const result: HeartHate = await this._service
                 .listByType(req.params.start_date, req.params.end_date, req.params.type)
 
-
             return res.status(200).send(result)
         } catch (err: any) {
             const handleError = ApiExceptionManager.build(err)

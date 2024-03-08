@@ -1,7 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { IHeartHateRepository } from '../../application/port/heart.hate.repository.interface'
 import { Identifier } from '../../di/identifiers'
-// import { ConnectionFactoryInfluxDB } from '../database/connection.factory.influxdb'
 import { IEntityMapper } from '../entity/mapper/entity.mapper.interface'
 import { HeartHate } from '../../application/domain/model/heart.hate'
 import { HeartHateEntity } from '../entity/heart.hate.entity'
@@ -10,19 +9,17 @@ import { Default } from '../../utils/default'
 import { RepositoryException } from '../../application/domain/exception/repository.exception'
 import { Strings } from '../../utils/strings'
 import moment from 'moment'
-// import { IConnectionFactoryDB } from '../port/connection.factory.interface'
 import { hostname } from 'os'
 import { FluxTableMetaData, InfluxDB } from '@influxdata/influxdb-client'
 import { DiagnosticsChannel } from 'undici-types'
+import { Item } from '../../application/domain/model/item'
 import Error = DiagnosticsChannel.Error
-import { next } from 'inversify-express-utils'
-// import { InfluxDB } from '@influxdata/influxdb-client'
+
 
 @injectable()
 export class HeartHateRepository implements IHeartHateRepository {
 
     constructor(
-        // @inject(Identifier.INFLUXDB_CONNECTION) private readonly _db: InfluxDB,
         @inject(Identifier.HEART_HATE_MAPPER) private readonly _mapper: IEntityMapper<HeartHate, HeartHateEntity>,
         @inject(Identifier.LOGGER) protected readonly _logger: ILogger
     ) {
@@ -63,43 +60,59 @@ export class HeartHateRepository implements IHeartHateRepository {
         return this.buildResult(type, startTime, endTime)
     }
 
-    private async buildResult(type: string,
-                              startTime: string, endTime: string): Promise<HeartHate> {
-        return new Promise<HeartHate>(async (resolve, reject) => {
-            const query: Array<string> = this.buildQuery(type, startTime, endTime)
-            console.log(`query: ${query}`)
-            const instance: InfluxDB | undefined = new InfluxDB({
-                url: process.env.INFLUXDB_URL || Default.INFLUXDB_URL,
-                token: process.env.INFLUXDB_TOKEN || Default.INFLUXDB_TOKEN
-            })
+    private async buildResult(type: string, startTime: string, endTime: string): Promise<HeartHate> {
+        const query: Array<string> = this.buildQuery(type, startTime, endTime)
+        console.log(`query: ${query}`)
 
+        const instance: InfluxDB = new InfluxDB({
+            url: process.env.INFLUXDB_URL || Default.INFLUXDB_URL,
+            token: process.env.INFLUXDB_TOKEN || Default.INFLUXDB_TOKEN
+        })
+
+        const heart: HeartHate = new HeartHate()
+        let max = 0
+
+        return new Promise<HeartHate>((resolve, reject) => {
             instance.getQueryApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG)
                 .queryRows(query, {
                     next(row: string[], tableMeta: FluxTableMetaData): void  {
                         const obj = tableMeta.toObject(row)
-                        console.log(
-                            `${obj._measurement} in (${obj.type}): ${obj._field}=${obj._value}`
-                        )
+                        const item: Item = new Item()
+                        let min = obj._value
+                        heart.type = obj.type
+                        item.value = obj._value
+                        if (item.value > max) {
+                            max = item.value
+                        }
+                        if (item.value < min) {
+                            min = item.value
+                        }
+                        item.date = obj._time
+                        heart.min = min
+                        heart.max = max
+
+                        const startDate = new Date(obj._start)
+                        const stopDate = new Date(obj._stop)
+
+                        const durationInMilliseconds = stopDate.getTime() - startDate.getTime()
+                        heart.duration = durationInMilliseconds / (1000 * 3600 * 24)
+
+                        heart.dataSet.push(item)
                     },
                     error(error: Error) {
                         console.error(error)
                         console.log('\nFinished ERROR')
+                        reject(error)
                     },
                     complete() {
                         console.log('\nFinished SUCCESS')
-                        next()
+                        resolve(heart)
                     }
                 })
-                /*.then((res) => {
-                    console.log(`res: ${res}`)
-                    return resolve(this._mapper.transform(res))
-                })
-                .catch((err) => {
-                    this._logger.error(err)
-                    return reject(new RepositoryException(Strings.ERROR_MESSAGE.UNEXPECTED))
-                })*/
         })
     }
+
+
 
     private buildQuery(type: string,
                        startTime: string, endTime: string): Array<string> {
