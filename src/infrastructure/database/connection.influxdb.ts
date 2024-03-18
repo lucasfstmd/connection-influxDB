@@ -29,21 +29,18 @@ export class ConnectionInfluxDB implements IConnectionDB {
     }
 
     public async tryConnect(): Promise<void> {
-        const _this = this
-        await this._connectionFactory.createConnection()
-            .then((connection: InfluxDB) => {
-                this._connection = connection
-                this._eventConnection.emit('connected')
-                this._logger.info('Connection established with InfluxDB...')
-            })
-            .catch((err) => {
-                this._connection = undefined
-                this._eventConnection.emit('disconnected')
-                this._logger.warn(`Error trying to connect for the first time with InfluxDB! ${err.message}`)
-                setTimeout(async () => {
-                    _this.tryConnect().then()
-                }, 2000)
-            })
+        try {
+            this._connection = this._connectionFactory.createConnection()
+            this._eventConnection.emit('connected')
+            this._logger.info('Connection established with InfluxDB...')
+        } catch (err: any) {
+            this._connection = undefined
+            this._eventConnection.emit('disconnected')
+            this._logger.warn(`Error trying to connect for the first time with InfluxDB! ${err.message}`)
+            setTimeout(async ()  => {
+                this.tryConnect().then()
+            }, 2000)
+        }
     }
 
     /**

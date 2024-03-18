@@ -1,17 +1,13 @@
 import { IConnectionDB } from './connection.db.interface'
 import { InfluxDB } from '@influxdata/influxdb-client'
-// import { Point } from '@influxdata/influxdb-client'
 
 export interface IConnectionFactory {
     createConnection(uri: string | IConnectionDB, options?: IDBOptions | IEventBusOptions): Promise<any>
 }
 
 export interface IConnectionFactoryDB {
-    createConnection(): Promise<InfluxDB>
+    createConnection(): InfluxDB
 
-    // writeApi(points: Array<Point>, bucket: string): Promise<void>
-    //
-    // queryDB(query: Array<string>): Promise<any>
 }
 
 export interface IDBOptions {

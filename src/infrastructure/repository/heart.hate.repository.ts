@@ -10,16 +10,18 @@ import { RepositoryException } from '../../application/domain/exception/reposito
 import { Strings } from '../../utils/strings'
 import moment from 'moment'
 import { hostname } from 'os'
-import { FluxTableMetaData, InfluxDB } from '@influxdata/influxdb-client'
+import { FluxTableMetaData } from '@influxdata/influxdb-client'
 import { DiagnosticsChannel } from 'undici-types'
 import { Item } from '../../application/domain/model/item'
 import Error = DiagnosticsChannel.Error
+import { IConnectionFactoryDB } from '../port/connection.factory.interface'
 
 
 @injectable()
 export class HeartHateRepository implements IHeartHateRepository {
 
     constructor(
+        @inject(Identifier.INFLUXDB_CONNECTION_FACTORY) private readonly _db: IConnectionFactoryDB,
         @inject(Identifier.HEART_HATE_MAPPER) private readonly _mapper: IEntityMapper<HeartHate, HeartHateEntity>,
         @inject(Identifier.LOGGER) protected readonly _logger: ILogger
     ) {
@@ -31,12 +33,12 @@ export class HeartHateRepository implements IHeartHateRepository {
             try {
                 const data: HeartHateEntity = this._mapper.transform(item)
 
-                const instance: InfluxDB | undefined = new InfluxDB({
+                /*const instance: InfluxDB | undefined = new InfluxDB({
                     url: process.env.INFLUXDB_URL || Default.INFLUXDB_URL,
                     token: process.env.INFLUXDB_TOKEN || Default.INFLUXDB_TOKEN
-                })
+                })*/
 
-                instance.getWriteApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG, 'times.bucket', 'ns', {
+                this._db.testInstance().getWriteApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG, 'times.bucket', 'ns', {
                     defaultTags: {
                         services: 'timeseries',
                         host: hostname()
@@ -62,18 +64,12 @@ export class HeartHateRepository implements IHeartHateRepository {
 
     private async buildResult(type: string, startTime: string, endTime: string): Promise<HeartHate> {
         const query: Array<string> = this.buildQuery(type, startTime, endTime)
-        console.log(`query: ${query}`)
-
-        const instance: InfluxDB = new InfluxDB({
-            url: process.env.INFLUXDB_URL || Default.INFLUXDB_URL,
-            token: process.env.INFLUXDB_TOKEN || Default.INFLUXDB_TOKEN
-        })
 
         const heart: HeartHate = new HeartHate()
         let max = 0
 
         return new Promise<HeartHate>((resolve, reject) => {
-            instance.getQueryApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG)
+            this._db.testInstance().getQueryApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG)
                 .queryRows(query, {
                     next(row: string[], tableMeta: FluxTableMetaData): void  {
                         const obj = tableMeta.toObject(row)
