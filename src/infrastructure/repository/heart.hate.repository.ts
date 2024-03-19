@@ -38,7 +38,7 @@ export class HeartHateRepository implements IHeartHateRepository {
                     token: process.env.INFLUXDB_TOKEN || Default.INFLUXDB_TOKEN
                 })*/
 
-                this._db.testInstance().getWriteApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG, 'times.bucket', 'ns', {
+                this._db.createConnection().getWriteApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG, 'times.bucket', 'ns', {
                     defaultTags: {
                         services: 'timeseries',
                         host: hostname()
@@ -68,8 +68,10 @@ export class HeartHateRepository implements IHeartHateRepository {
         const heart: HeartHate = new HeartHate()
         let max = 0
 
+        console.log(query)
+
         return new Promise<HeartHate>((resolve, reject) => {
-            this._db.testInstance().getQueryApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG)
+            this._db.createConnection().getQueryApi(process.env.INFLUXDB_ORG || Default.INFLUXDB_ORG)
                 .queryRows(query, {
                     next(row: string[], tableMeta: FluxTableMetaData): void  {
                         const obj = tableMeta.toObject(row)
