@@ -16,15 +16,14 @@ export abstract class Default {
     public static readonly LOGO_URI: string = 'https://i.imgur.com/O7PxGWQ.png'
 
     // InfluxDB
-    public static readonly INFLUXDB_HOST: string = 'localhost'
-    public static readonly INFLUXDB_PORT: number = 8086
-    public static readonly INFLUXDB_NAME: string = 'haniot-timeseries'
+
+    public static readonly INFLUXDB_USER: string = 'haniot-timeseries'
     public static readonly INFLUXDB_NAME_TEST: string = 'haniot-timeseries-test'
     public static readonly INFLUXDB_PROTOCOL: string = 'http'
     public static readonly INFLUXDB_URL: string = 'http://localhost:8086'
     public static readonly INFLUXDB_TOKEN: string = 'my-token'
     public static readonly INFLUXDB_ORG: string = 'my-org'
-    public static readonly INFLUXDB_BUCKET: string = 'my-bucket'
+    public static readonly INFLUXDB_BUCKET: string = ''
     public static readonly MEASUREMENT_HR_NAME: string = 'times.bucket'
     public static readonly MEASUREMENT_TIMESERIES_NAME: string = 'intraday_timeseries'
 

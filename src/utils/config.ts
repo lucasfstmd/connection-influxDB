@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { Default } from './default'
 import { IEventBusOptions, ISSL } from '../infrastructure/port/connection.factory.interface'
+import { ConnectionOptions } from '@influxdata/influxdb-client'
 
 export abstract class Config {
 
@@ -10,23 +11,26 @@ export abstract class Config {
      * @return {
      *     uri: '',
      *     options: {
-     *         sslValidate: true,
-     *         tlsCAFile: '',
-     *         tlsCertificateKeyFile: ''
+     *         url: '',
+     *         token: '',
+     *         trasportOoptions: {}
      *     }
      * }
      */
-    /*public static getMongoConfig(): IMongoConfig {
+    public static getInfluxConfig(): IInfluxDBConfig {
+        const uri = process.env.INFLUXDB_URL || Default.INFLUXDB_URL
+
         return {
-            uri: (process.env.NODE_ENV === 'test') ? (process.env.MONGODB_URI_TEST ||
-                Default.MONGODB_URI_TEST) : (process.env.MONGODB_URI || Default.MONGODB_URI),
-            options: (process.env.MONGODB_ENABLE_TLS === 'true') ? {
-                sslValidate: true,
-                tlsCAFile: process.env.MONGODB_CA_PATH,
-                tlsCertificateKeyFile: process.env.MONGODB_KEY_PATH
-            } as IDBOptions : undefined
-        } as IMongoConfig
-    }*/
+            uri,
+            options: {
+                url: uri,
+                token: process.env.INFLUXDB_TOKEN || Default.INFLUXDB_TOKEN,
+                transportOptions: {
+                    rejectUnauthorized: true
+                }
+            } as ConnectionOptions
+        } as IInfluxDBConfig
+    }
 
     /**
      * Retrieve the URI and options for connection to RabbitMQ.
@@ -61,12 +65,13 @@ export abstract class Config {
     }
 }
 
-/*export interface IMongoConfig {
-    uri: string
-    options: IDBOptions
-}*/
 
 export interface IRabbitConfig {
     uri: string
     options: IEventBusOptions
+}
+
+interface IInfluxDBConfig {
+    uri: string
+    options: ConnectionOptions
 }

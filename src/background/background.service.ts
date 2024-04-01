@@ -4,14 +4,14 @@ import { IBackgroundTask } from '../application/port/background.task.interface'
 import { Config } from '../utils/config'
 import { ILogger } from '../utils/custom.logger'
 import { IEventBus } from '../infrastructure/port/event.bus.interface'
-import { IConnectionDB } from '../infrastructure/port/connection.db.interface'
+import { IDatabase } from '../infrastructure/port/database.interface'
 
 @injectable()
 export class BackgroundService {
 
     constructor(
         @inject(Identifier.RABBITMQ_EVENT_BUS) private readonly _eventBus: IEventBus,
-        @inject(Identifier.INFLUXDB_CONNECTION) private readonly _influxdb: IConnectionDB,
+        @inject(Identifier.INFLUXDB_CONNECTION) private readonly _influxdb: IDatabase,
         @inject(Identifier.LOGGER) private readonly _logger: ILogger,
         @inject(Identifier.PUBLISH_EVENT_BUS_TASK) private readonly _publishTask: IBackgroundTask,
         @inject(Identifier.SUBSCRIBE_EVENT_BUS_TASK) private readonly _subscribeTask: IBackgroundTask,
@@ -27,7 +27,10 @@ export class BackgroundService {
              * database is connected, and in this case, the background tasks will run
              */
             await this._registerSettingsTask.run()
-            await this._influxdb.tryConnect()
+
+            const dbConfigs = Config.getInfluxConfig()
+            await this._influxdb.tryConnect(dbConfigs.uri, dbConfigs.options)
+
 
             /**
              * Trying to connect to mongodb.
